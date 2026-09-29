@@ -1,0 +1,19 @@
+{
+  "name": "seed-solar-observatory",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "太阳观察台：交互式天文教学应用（日出日落、季节、月球与月相）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test \"test/**/*.test.js\""
+  },
+  "dependencies": {
+    "three": "0.169.0"
+  },
+  "devDependencies": {
+    "vite": "5.4.8"
+  }
+}
