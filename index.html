@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="太阳观察台：在宇宙中理解北京的日出日落、季节变化，以及月球为什么发亮、月相如何变化。" />
+  <title>太阳观察台 · 日出日落与月相</title>
+  <script type="module" crossorigin src="./assets/index-BSMER69r.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CBIDGkvx.css">
+</head>
+<body>
+  <!-- 3D 场景容器：铺满整个视口 -->
+  <div id="scene-container" aria-hidden="true"></div>
+
+  <!-- 天体 DOM 标签层 -->
+  <div id="label-layer" aria-hidden="true"></div>
+
+  <!-- 加载欢迎页：应用介绍 + 分阶段进度 -->
+  <div id="loading" role="status" aria-live="polite">
+    <div class="loading-stars" aria-hidden="true"></div>
+    <div class="loading-card welcome-card">
+      <div class="welcome-head">
+        <svg class="welcome-emblem" viewBox="0 0 120 120" role="img" aria-label="太阳、地球与月球示意">
+          <circle cx="60" cy="60" r="44" class="em-orbit" />
+          <g class="em-earth-orbit">
+            <circle cx="104" cy="60" r="7.2" class="em-earth" />
+            <g class="em-moon-orbit">
+              <circle cx="115" cy="60" r="2.6" class="em-moon" />
+            </g>
+          </g>
+          <circle cx="60" cy="60" r="11" class="em-sun" />
+        </svg>
+        <div class="welcome-headtext">
+          <h1 class="welcome-title">太阳观察台</h1>
+          <p class="welcome-sub">置身宇宙，读懂北京的日出日落、四季与月相</p>
+        </div>
+      </div>
+
+      <p class="welcome-intro">
+        这是一个可以动手操作的 3D 天文课堂：调整日期与时间、旋转地球、锁定北京、跟踪月球——
+        所有现象都由真实天文公式在你的设备上实时计算，无需联网。
+      </p>
+
+      <ul class="welcome-features">
+        <li>
+          <svg class="wf-icon" viewBox="0 0 40 40" aria-hidden="true">
+            <defs>
+              <linearGradient id="wf-daynight" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="50%" stop-color="#3d7fb5" />
+                <stop offset="50%" stop-color="#0a1830" />
+              </linearGradient>
+            </defs>
+            <circle cx="20" cy="20" r="13" fill="url(#wf-daynight)" stroke="#7fb4dd" stroke-width="1.4" />
+            <line x1="20" y1="7" x2="20" y2="33" stroke="#f7c779" stroke-width="1.4" stroke-dasharray="2 2" />
+            <circle cx="33" cy="10" r="3" fill="#ffd27f" />
+          </svg>
+          <div>
+            <b>日出日落</b>
+            <span>太阳没有“落下”，是北京转进了夜晚</span>
+          </div>
+        </li>
+        <li>
+          <svg class="wf-icon" viewBox="0 0 40 40" aria-hidden="true">
+            <circle cx="20" cy="20" r="12" fill="#2f6494" stroke="#7fb4dd" stroke-width="1.4" />
+            <line x1="11.5" y1="31.5" x2="28.5" y2="8.5" stroke="#d7e6f2" stroke-width="1.6" stroke-linecap="round" />
+            <path d="M31 14 a13 13 0 0 1 0 12" fill="none" stroke="#f7c779" stroke-width="1.4" stroke-linecap="round" />
+          </svg>
+          <div>
+            <b>季节变化</b>
+            <span>地轴倾斜 23.44°，比较夏至与冬至的昼夜长短</span>
+          </div>
+        </li>
+        <li>
+          <svg class="wf-icon" viewBox="0 0 40 40" aria-hidden="true">
+            <defs>
+              <linearGradient id="wf-moonph" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="50%" stop-color="#cfd3d6" />
+                <stop offset="50%" stop-color="#1a2430" />
+              </linearGradient>
+            </defs>
+            <circle cx="20" cy="20" r="12" fill="url(#wf-moonph)" stroke="#a9c3d8" stroke-width="1.4" />
+            <circle cx="7" cy="10" r="2.4" fill="#ffd27f" />
+            <line x1="9.6" y1="11.6" x2="13" y2="14" stroke="#ffd27f" stroke-width="1.2" stroke-linecap="round" />
+          </svg>
+          <div>
+            <b>月球与月相</b>
+            <span>月球不发光，它反射阳光；月相月月轮回</span>
+          </div>
+        </li>
+      </ul>
+
+      <div class="welcome-progress">
+        <p id="loading-text" class="welcome-status">正在布置宇宙…</p>
+        <div class="progress" id="loading-progress" role="progressbar"
+             aria-label="应用加载进度" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-fill" id="loading-progress-fill"></div>
+        </div>
+        <div class="progress-meta">
+          <span id="loading-stage">准备中…</span>
+          <span id="loading-percent">0%</span>
+        </div>
+      </div>
+
+      <p class="welcome-foot">NASA 公开科学贴图 · NOAA / Schlyter 天文算法 · 全部本地计算</p>
+    </div>
+  </div>
+
+  <!-- WebGL 不可用提示 -->
+  <div id="webgl-error" hidden>
+    <div class="error-card">
+      <h2>无法启动 3D 宇宙</h2>
+      <p id="webgl-error-detail">当前浏览器未启用 WebGL。</p>
+      <p>请使用最新版 Chrome、Edge、Safari 或 Firefox，并确认已开启硬件加速。天文数据面板仍可在支持的环境中使用。</p>
+    </div>
+  </div>
+
+  <!-- 左上角品牌 -->
+  <header id="brand">
+    <div class="brand-title">太阳观察台</div>
+    <div class="brand-view" id="view-name">全景视角</div>
+  </header>
+
+  <!-- 左下角教学标题与状态 -->
+  <section id="hud-bottom" aria-live="polite">
+    <h1 id="lesson-title">太阳没有落下。<br />是北京转进了夜晚。</h1>
+    <div id="lesson-status" class="lesson-status">暂停 · 1× · 2026-06-21 19:30（北京时间）</div>
+    <div id="legend" class="legend">
+      <span><i class="dot dot-sun"></i>太阳</span>
+      <span><i class="dot dot-earth"></i>地球 / 北京</span>
+      <span><i class="dot dot-moon"></i>月球</span>
+      <span><i class="dot dot-term"></i>晨昏线</span>
+    </div>
+  </section>
+
+  <div id="scale-note">大小与距离为教学示意 · 未模拟日食、月食</div>
+
+  <!-- 右侧面板的小入口（点击滑出观察面板） -->
+  <button type="button" id="panel-toggle" class="panel-dock"
+          aria-expanded="false" aria-controls="panel" aria-label="打开观察参数面板">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+         stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+      <line x1="4" y1="6.5" x2="20" y2="6.5" />
+      <circle cx="9.5" cy="6.5" r="2" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <circle cx="15" cy="12" r="2" />
+      <line x1="4" y1="17.5" x2="20" y2="17.5" />
+      <circle cx="10.5" cy="17.5" r="2" />
+    </svg>
+  </button>
+
+  <!-- 右上角唯一观察面板（默认收在右侧屏幕外） -->
+  <aside id="panel" aria-label="观察参数面板">
+    <button type="button" id="panel-close" class="panel-close" aria-label="关闭观察参数面板">✕</button>
+    <details id="panel-main" open>
+      <summary>
+        <span class="summary-title">观察参数</span>
+        <span class="summary-arrow" aria-hidden="true">▾</span>
+      </summary>
+      <div class="panel-body">
+        <!-- 日期 -->
+        <div class="control-row">
+          <label for="date-input">日期</label>
+          <input type="date" id="date-input" min="2024-01-01" max="2036-12-31" value="2026-06-21" inputmode="numeric" />
+        </div>
+        <p id="date-error" class="field-error" role="alert" hidden></p>
+
+        <!-- 北京时间 -->
+        <div class="control-row time-row">
+          <label for="time-slider">北京时间</label>
+          <div class="time-clock" id="time-clock" aria-label="当前北京时间">19:30</div>
+        </div>
+        <input type="range" id="time-slider" min="0" max="1435" step="5" value="1170"
+               aria-label="北京时间滑块，0点到23点55分，步长5分钟" />
+        <div class="slider-ticks"><span>00:00</span><span>12:00</span><span>23:55</span></div>
+
+        <!-- 播放一天与速度 -->
+        <div class="control-row playback-row">
+          <button type="button" id="play-day-btn" class="btn btn-primary" aria-pressed="false">
+            <span class="btn-icon" aria-hidden="true">▶</span><span class="btn-label">播放一天</span>
+          </button>
+          <label for="speed-select" class="speed-label">速度</label>
+          <select id="speed-select" aria-label="播放速度">
+            <option value="0.1">0.1×</option>
+            <option value="0.25">0.25×</option>
+            <option value="0.5">0.5×</option>
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+            <option value="4">4×</option>
+          </select>
+        </div>
+        <p class="hint-text" id="day-duration-hint">1× 下一天约 24 秒</p>
+
+        <!-- 当日日出日落 -->
+        <div class="info-card" id="sun-events-card">
+          <div class="info-card-title">当日北京 · 太阳</div>
+          <div class="info-grid">
+            <div><span>日出</span><b id="sunrise-time">—</b></div>
+            <div><span>太阳中天</span><b id="solarnoon-time">—</b></div>
+            <div><span>日落</span><b id="sunset-time">—</b></div>
+            <div><span>白昼时长</span><b id="daylight-time">—</b></div>
+          </div>
+        </div>
+
+        <!-- 视角：地球聚焦 / 北京锁定 / 缩放 -->
+        <div class="control-row view-buttons">
+          <button type="button" id="focus-earth-btn" class="btn" aria-pressed="false">聚焦地球</button>
+          <button type="button" id="lock-beijing-btn" class="btn" hidden aria-pressed="false">锁定北京</button>
+        </div>
+        <div class="control-row zoom-row">
+          <button type="button" id="zoom-in-btn" class="btn btn-square" aria-label="放大">＋</button>
+          <button type="button" id="zoom-out-btn" class="btn btn-square" aria-label="缩小">－</button>
+          <button type="button" id="reset-view-btn" class="btn">重置视角</button>
+          <button type="button" id="back-overview-btn" class="btn" hidden>返回全景</button>
+        </div>
+      </div>
+    </details>
+
+    <!-- 月球与月相 -->
+    <details id="panel-moon">
+      <summary>
+        <span class="summary-title">月球与月相</span>
+        <span class="summary-arrow" aria-hidden="true">▾</span>
+      </summary>
+      <div class="panel-body">
+        <div class="moon-phase-row">
+          <svg id="moon-phase-svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="从地球看到的月相示意图">
+            <circle cx="32" cy="32" r="30" class="svg-dark" />
+            <path id="moon-phase-path" class="svg-lit" d="" />
+            <circle cx="32" cy="32" r="30" class="svg-rim" fill="none" />
+          </svg>
+          <div class="moon-phase-meta">
+            <div class="moon-phase-name" id="moon-phase-name">—</div>
+            <div class="moon-phase-sub" id="moon-phase-sub">从地球看 · 示意（北向上）</div>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div><span>受光比例</span><b id="moon-illum">—</b></div>
+          <div><span>实际距离</span><b id="moon-distance">—</b></div>
+          <div class="info-wide"><span>北京月心几何高度</span><b id="moon-altitude">—</b></div>
+        </div>
+        <div class="control-row view-buttons">
+          <button type="button" id="focus-moon-btn" class="btn">看地月系统</button>
+          <button type="button" id="play-moon-btn" class="btn">演示月球公转</button>
+        </div>
+        <div class="control-row">
+          <label class="switch-row">
+            <input type="checkbox" id="orbit-toggle" checked />
+            <span>显示月球轨道</span>
+          </label>
+        </div>
+        <p class="explain-text">
+          月球不自己发光，它把阳光反射给我们；月相由日、地、月的相对位置变化产生，一般不是地球的影子。
+          月球绕地球一圈（恒星月）约 <b>27.32 天</b>，重复同一月相（朔望月）约 <b>29.53 天</b>。
+        </p>
+      </div>
+    </details>
+
+    <!-- 季节与原理 -->
+    <details id="panel-season">
+      <summary>
+        <span class="summary-title">季节与原理</span>
+        <span class="summary-arrow" aria-hidden="true">▾</span>
+      </summary>
+      <div class="panel-body">
+        <div class="control-row season-buttons">
+          <button type="button" class="btn btn-small" data-season="2026-03-20">春分前后</button>
+          <button type="button" class="btn btn-small" data-season="2026-06-21">夏至前后</button>
+          <button type="button" class="btn btn-small" data-season="2026-12-21">冬至前后</button>
+        </div>
+        <div class="control-row">
+          <button type="button" id="play-year-btn" class="btn btn-primary">演示地球公转</button>
+        </div>
+        <div class="info-card">
+          <div class="info-card-title">季节原理</div>
+          <p class="explain-text">
+            地轴倾斜约 <b>23.44°</b>，一年中朝向几乎不变。地球绕太阳公转时，北京被阳光直射的程度变化：
+            夏季太阳高、白昼长；冬季太阳低、白昼短。
+          </p>
+        </div>
+        <p class="explain-text small-text">
+          本应用为教学示意：日出日落采用标准大气折射与太阳上缘定义；月心高度为几何高度（含地表视差，不含折射）。
+          未模拟日食、月食、地形遮挡与实时天气。
+        </p>
+      </div>
+    </details>
+  </aside>
+
+</body>
+</html>
